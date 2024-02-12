@@ -1,0 +1,31 @@
+# @package _group_
+env: "antmaze-large-play-v2"
+
+p_tremble: 0.0
+reset_prob: 1.0
+total_env_steps: 500_000
+eval_frequency: 25_000
+expert_dataset_size: 100_000
+bc_init_steps: 10000
+
+train_discriminator: true
+discriminator:
+  lr: 8e-3
+  train_every: 5_000
+  num_sample_trajectories: 4
+  num_update_steps: 1
+  batch_size: 4096
+  clip_output: false
+  ensemble_size: 1  # 1 is equivalent to no ensemble
+
+actor:
+  bc_reg: False
+  bc_weight: 1.0
+  discount: 0.99
+  tau: 0.005
+  policy_noise_scalar: 0.2
+  noise_clip_scalar: 0.5
+  policy_freq: 2
+  alpha: 2.5
+  decay_lr: False
+

@@ -1,0 +1,48 @@
+# @package _group_
+name: "hype"
+
+reset_prob: 0.0
+total_env_steps: ${overrides.total_env_steps}
+
+relabel: true
+hybrid_sampling: true
+is_model_based: false
+bc_init_steps: ${overrides.bc_init_steps}
+sampling_schedule: ${overrides.sampling_schedule}
+
+# --------------------------------------------
+#          SAC Agent configuration
+# --------------------------------------------
+sac_agent:
+  bc_reg: ${overrides.actor.bc_reg}
+  bc_weight: ${overrides.actor.bc_weight}
+  policy: ${overrides.actor.policy}
+  verbose: 0
+  policy_kwargs: ${overrides.actor.policy_kwargs}
+  ent_coef: "auto"
+  train_freq: ${overrides.actor.train_freq}
+  gradient_steps: ${overrides.actor.gradient_steps}
+  gamma: ${overrides.actor.gamma}
+  tau: ${overrides.actor.tau}
+  device: ${device}
+
+
+# --------------------------------------------
+#          TD3-BC Agent configuration
+# --------------------------------------------
+td3_agent:
+  _target_: garage.models.td3_bc.TD3_BC
+  env: ???
+  expert_buffer: ???
+  learner_buffer: ???
+  discriminator: ???
+  cfg: ???
+  discount: ${overrides.actor.discount}
+  tau: ${overrides.actor.tau}
+  policy_noise_scalar: ${overrides.actor.policy_noise_scalar}
+  noise_clip_scalar: ${overrides.actor.noise_clip_scalar}
+  policy_freq: ${overrides.actor.policy_freq}
+  alpha: ${overrides.actor.alpha}
+  decay_lr: ${overrides.actor.decay_lr}
+  hybrid_sampling: false
+  device: ${device}

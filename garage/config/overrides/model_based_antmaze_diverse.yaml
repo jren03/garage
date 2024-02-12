@@ -1,0 +1,59 @@
+# @package _group_
+env: "antmaze-large-diverse-v2"
+term_fn: "no_termination"
+
+p_tremble: 0.00
+bc_init_steps: 10_000
+initial_exploration_steps: 10_000
+pretrained_dynamics_model: True
+
+expert_dataset_size: 100_000
+total_env_steps: 150_000
+eval_frequency: 10_000
+epoch_length: 1000
+
+num_elites: 5
+patience: 10
+model_lr: 0.0003
+model_wd: 5e-5
+model_batch_size: 256
+validation_ratio: 0.2
+freq_train_model: 1000
+effective_model_rollouts_per_step: 400
+rollout_schedule: [20, 100, 1, 25]
+num_policy_updates_per_step: 20
+policy_updates_every_steps: 1
+num_epochs_to_retain_learner_buffer: 1
+
+ema_agent: true
+model_clip_output: false
+schedule_model_lr: true
+schedule_actor_lr: true
+
+train_discriminator: true
+discriminator:
+  lr: 8e-3
+  train_every: 2000
+  num_sample_trajectories: 4
+  num_update_steps: 1
+  batch_size: 4096
+  clip_output: false
+  weight_decay: false
+  ensemble_size: 1  # 1 is equivalent to no ensemble
+
+decay_lr_scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  optimizer: ???
+  T_max: 30000
+  eta_min: 1.0e-07
+
+actor:
+  bc_reg: False
+  bc_weight: 1.0
+  discount: 0.99
+  tau: 0.005
+  policy_noise_scalar: 0.2
+  noise_clip_scalar: 0.5
+  policy_freq: 2
+  alpha: 2.5
+  decay_lr: False
