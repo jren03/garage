@@ -5,7 +5,7 @@
       <img src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
 </p>
 
-This repository contains implementations of the algorithms presented in [Hybrid Inverse Reinforcement Learning.](https://www.robot-learning.ml/2023/files/paper42.pdf).
+This repository contains implementations of the algorithms presented in [Hybrid Inverse Reinforcement Learning.](https://arxiv.org/abs/2402.08848).
 <p align="center">
   <img width="500" src="assets/hyper_ffig.png">
 </p>
@@ -161,12 +161,13 @@ The HyPER algorithm is built off of [LAMPS-MBRL](https://github.com/vvanirudh/LA
 
 If you found this repository useful in your research, plase consider citing our paper.
 ```bibtex
-@article{ren2023hyrbid,
-  title={Hybrid Inverse Reinforcement Learning},
-  author={Juntao Ren and Gokul Swamy and Zhiwei Steven Wu and J. Andrew Bagnell and Sanjiban Choudhury},
-  booktitle={6th Robot Learning Workshop at NeurIPS 2023},
-  url={https://www.robot-learning.ml/2023/files/paper42.pdf},
-  year={2023},
+@misc{ren2024hybrid,
+      title={Hybrid Inverse Reinforcement Learning}, 
+      author={Juntao Ren and Gokul Swamy and Zhiwei Steven Wu and J. Andrew Bagnell and Sanjiban Choudhury},
+      year={2024},
+      eprint={2402.08848},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
 }
 ```
 
