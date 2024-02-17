@@ -147,9 +147,7 @@ class SAC(SB3_SAC):
             if self.bc_reg:
                 actor_loss = (
                     ent_coef * log_prob - min_qf_pi
-                ).mean() + self.regularization_constant * F.mse_loss(
-                    actions_pi, replay_data.actions
-                )
+                ).mean() + self.bc_weight * F.mse_loss(actions_pi, replay_data.actions)
             else:
                 actor_loss = (ent_coef * log_prob - min_qf_pi).mean()
             # ----------- END CHANGES ------------
