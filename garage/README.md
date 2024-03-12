@@ -63,6 +63,7 @@ For model-free experiments specifically:
 * `overrides.sampling_schedule`: what percentage of expert samples to use in shared buffer update. We recommend experimenting with both a constant and decaying percentage. 
 
 For model-based experiments specifically:
+* `overrides.model_hid_size`: the size of the model. For some environments such as `Humanoid`, we find that a larger model size is importance for quicker convergence.
 * `overrides.ema_agent`: whether to use the EMA of the policy weights during inference. 
 * `overrides.schedule_model_lr`: whether to decay the learning rate of the model.
 * `overrides.schedule_actor_lr`: whether to decay the learning rate of the actor.
