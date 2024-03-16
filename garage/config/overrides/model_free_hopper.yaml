@@ -7,12 +7,12 @@ total_env_steps: 1_000_000
 eval_frequency: 50_000
 expert_dataset_size: 64_000
 bc_init_steps: 0
-sampling_schedule: [[0.2, 0.2, 300000], [0.2, 0.01, 1000000]]
+sampling_schedule: [[0.2, 0.1, 200000], [0.1, 0.01, 1000000]]
 
 train_discriminator: true
 discriminator:
   lr: 8e-4
-  train_every: 10_000
+  train_every: 5000
   num_sample_trajectories: 4
   num_update_steps: 1
   batch_size: 4096

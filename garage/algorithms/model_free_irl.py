@@ -1,8 +1,9 @@
 """
-This code is extended from https://github.com/gkswamy98/fast_irl/blob/master/learners/filt.py 
+This code is extended from https://github.com/gkswamy98/fast_irl/blob/master/learners/filt.py
 and follows largely the same structure. The main difference is the addition of a HybridReplayBuffer
 that is used to train the SAC agent under the HyPE algorithm.
 """
+
 import os
 from pathlib import Path
 from typing import Any, Dict
@@ -32,7 +33,7 @@ from garage.utils.replay_buffer import HybridReplayBuffer, QReplayBuffer
 
 def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
     """
-    Main training loop for model-based inverse reinforcement learning.
+    Main training loop for model-free inverse reinforcement learning.
 
     Args:
         cfg (omegaconf.DictConfig): Configuration for the experiment.

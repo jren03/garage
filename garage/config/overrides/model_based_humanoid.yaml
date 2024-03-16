@@ -3,7 +3,8 @@ env: "humanoid_truncated_obs"
 
 p_tremble: 0.025
 bc_init_steps: 0
-initial_exploration_steps: 64_000
+initial_exploration_steps: 1000
+initial_expert_steps: ${overrides.expert_dataset_size}
 
 expert_dataset_size: 64_000
 total_env_steps: 150_000
@@ -20,10 +21,11 @@ freq_train_model: 125
 effective_model_rollouts_per_step: 400
 rollout_schedule: [20, 300, 1, 25]
 num_policy_updates_per_step: 20
-policy_updates_every_steps: 1
-num_epochs_to_retain_learner_buffer: 5
+policy_updates_every_steps: 2
+num_epochs_to_retain_learner_buffer: 1
+model_hid_size: 400
 
-ema_agent: false
+ema_agent: true
 model_clip_output: false
 schedule_model_lr: false
 schedule_actor_lr: true
@@ -31,7 +33,7 @@ schedule_actor_lr: true
 train_discriminator: true
 discriminator:
   lr: 8e-4
-  train_every: 2000
+  train_every: 10000
   num_sample_trajectories: 4
   num_update_steps: 1
   batch_size: 4096

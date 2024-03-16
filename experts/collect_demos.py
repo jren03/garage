@@ -30,7 +30,7 @@ def get_trajectory_data_dict() -> Dict[str, Any]:
 def rollout(
     env_name: str, expert_root_dir: str, max_path: int = 1000, num_data: int = 100_000
 ) -> Dict[str, Any]:
-    expert_ckpt_path = f"{expert_root_dir}/{env_name}_expert_ckpt"
+    expert_ckpt_path = f"{expert_root_dir}/best_model"
     model = SAC.load(expert_ckpt_path)
 
     env = gym.make(env_name)
@@ -222,14 +222,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Collect expert demonstrations.")
     parser.add_argument(
         "--env",
-        choices=[
-            "ant",
-            "hopper",
-            "humanoid",
-            "walker",
-            "maze-diverse",
-            "maze-play",
-        ],
+        choices=ENV_ABBRV_TO_FULL.keys(),
         required=True,
     )
     args = parser.parse_args()

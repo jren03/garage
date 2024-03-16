@@ -1,7 +1,7 @@
 import hydra
 import omegaconf
 
-from garage.algorithms import model_based_irl, model_free_irl, pretrain_antmaze
+from garage.algorithms import model_based_irl, model_free_irl, pretrain_antmaze, bc
 from garage.utils.common import set_seed
 from garage.utils.fetch_demos import fetch_demos
 
@@ -18,6 +18,8 @@ def main(cfg: omegaconf.DictConfig):
         model_based_irl.train(cfg, demos_dict)
     elif cfg.algorithm.name == "pretrain_antmaze":
         pretrain_antmaze.train(cfg, demos_dict)
+    elif cfg.algorithm.name == "bc":
+        bc.train(cfg, demos_dict)
     else:
         model_free_irl.train(cfg, demos_dict)
 

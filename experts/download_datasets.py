@@ -1,9 +1,9 @@
 """
-This file downloads the exact datasets used in the paper. 
+This file downloads the exact datasets used in the paper.
 They will be downloaded to experts/<env_name>/<env_name>_demos.npz.
-NOTE: for antmaze datasets, please run 
+NOTE: for antmaze datasets, please run
     python experts/collect_demos.py --env antmaze-large-diverse-v2
-    or 
+    or
     python experts/collect_demos.py --env antmaze-large-play-v2
 to generate the demonstration files.
 

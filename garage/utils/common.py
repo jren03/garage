@@ -1,5 +1,6 @@
 import os
 import random
+from pathlib import Path
 from typing import Tuple
 
 import gym
@@ -8,10 +9,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import wget
-from pathlib import Path
 from matplotlib import font_manager as fm
 from matplotlib import pyplot as plt
-
 
 # ---------- Constants ----------
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -36,14 +35,10 @@ ENV_ABBRV_TO_FULL = {
 }
 
 ENV_ABBRV_TO_DATASET_URL = {
-    # "ant": "https://drive.google.com/uc?export=download&id=14yZEuRFceeqJ7vLAHkWf6dcg-hRkXWGI",
-    # "hopper": "https://drive.google.com/uc?export=download&id=1eLhUBFp6LSrWZc2Ijlz-rIXZcQaDNNYl",
-    # "humanoid": "https://drive.google.com/uc?export=download&id=1NeQ56i4g1uh7W0AOSS0rZ3psp48Kn-q5",
-    # "walker": "https://drive.google.com/uc?export=download&id=11LuWGVRmgJnPOXIwRekeRN9tHf9i2dYZ",
-    "ant": "https://www.dropbox.com/scl/fi/nak6w23k6hinmjd0u7npe/Ant-v3_demos.npz?rlkey=bxc9xtxnzjxfmg3ji26ntppsi&dl=1",
-    "hopper": "https://www.dropbox.com/scl/fi/tp9x66ivkjp2n45bcj323/Hopper-v3_demos.npz?rlkey=ta5qtl1yr2xi8su78q3rf54ma&dl=1",
-    "humanoid": "https://www.dropbox.com/scl/fi/14vcy8bel4v2hqfrxxr3c/Humanoid-v3_demos.npz?rlkey=rkwks556ty7n0lf4mmjfct9eq&dl=1",
-    "walker": "https://www.dropbox.com/scl/fi/s95wk2i87aqi4vjd4b9ae/Walker2d-v3_demos.npz?rlkey=rrvxasd9sgawshv81obi912ih&dl=1",
+    "ant": "https://www.dropbox.com/scl/fi/kvzl04g9d3pmhoowvfs75/Ant-v3_demos.npz?rlkey=g2ajzw0l3u3rt436g162e21sl&dl=1",
+    "hopper": "https://www.dropbox.com/scl/fi/73ffc8msaky5vc741adr9/Hopper-v3_demos.npz?rlkey=77rm79dd1ppz6mebu0h2w3nvl&dl=1",
+    "humanoid": "https://www.dropbox.com/scl/fi/obhdjlbc4pab4v93vflmj/Humanoid-v3_demos.npz?rlkey=tpkz81w8036m1vkzf2556kqsy&dl=1",
+    "walker": "https://www.dropbox.com/scl/fi/3i4803t9mz76sqm7k92wy/Walker2d-v3_demos.npz?rlkey=81sb22opy037re044o26bflbh&dl=1",
 }
 
 

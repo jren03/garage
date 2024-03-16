@@ -4,11 +4,24 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from rliable import library as rly
+from rliable import metrics
+
 from garage.utils.common import setup_plots
 from garage.utils.fetch_demos import fetch_demos
 
 
-def main(env_name: str, graph_all: bool) -> None:
+def calc_iqm(data):
+    def iqm(x):
+        return np.array([metrics.aggregate_iqm(x[:, :, i]) for i in range(x.shape[-1])])
+
+    iqm_scores, _ = rly.get_interval_estimates(
+        {"alg": np.expand_dims(data, 1)}, iqm, reps=5000
+    )
+    return iqm_scores
+
+
+def main(env_name: str, graph_all: bool, aggregation_metric: str) -> None:
     # Please uncomment the following line to download Palatino font
     # download_font()
 
@@ -20,7 +33,7 @@ def main(env_name: str, graph_all: bool) -> None:
         "filter": "#724BA1",
         "hype": "#F79646",
         "hyper": "#4BACC6",
-        "hype_filter": "#f57c6e",
+        "hype_filter": "#fc9df9",
     }
     env_abbrv_to_full_and_ptremble = {
         "ant": ("Ant-v3", 0.01),
@@ -41,12 +54,14 @@ def main(env_name: str, graph_all: bool) -> None:
 
     if graph_all:
         envs = ["ant", "hopper", "humanoid", "walker", "maze-diverse", "maze-play"]
+    elif isinstance(env_name, list):
+        envs = env_name
     else:
         envs = [env_name]
 
     model_free_steps = 20
-    mujoco_model_based_steps = 10
-    d4rl_model_based_steps = 15
+    mujoco_model_based_steps = 15
+    maze_model_based_steps = 15
 
     experiment_results = Path("experiment_results")
     for env_name in envs:
@@ -65,27 +80,32 @@ def main(env_name: str, graph_all: bool) -> None:
             ]
         algorithm_to_means = defaultdict(list)
         for result_file in results_files:
-            algorithm_name = result_file.stem.rsplit("_", 1)[0]
+            algorithm_name, seed = result_file.stem.rsplit("_", 1)
             means = np.load(result_file, allow_pickle=True)["means"]
             if (
                 algorithm_name == "hyper"
                 and "maze" not in env_name
-                and len(means) >= d4rl_model_based_steps
-            ):
-                algorithm_to_means[algorithm_name].append(
-                    means[:d4rl_model_based_steps]
-                )
-            elif (
-                algorithm_name == "hyper"
-                and "maze" in env_name
                 and len(means) >= mujoco_model_based_steps
             ):
                 algorithm_to_means[algorithm_name].append(
                     means[:mujoco_model_based_steps]
                 )
+            elif (
+                algorithm_name == "hyper"
+                and "maze" in env_name
+                and len(means) >= maze_model_based_steps
+            ):
+                algorithm_to_means[algorithm_name].append(
+                    means[:maze_model_based_steps]
+                )
+            elif algorithm_name == "bc":
+                algorithm_to_means[algorithm_name].append(
+                    np.repeat(means, model_free_steps)
+                )
             elif len(means) >= model_free_steps:
                 algorithm_to_means[algorithm_name].append(means[:model_free_steps])
             else:
+                print(f"Skipping {result_file} because it has {len(means)} steps")
                 continue
             seeds_per_env[algorithm_name] += 1
 
@@ -98,14 +118,26 @@ def main(env_name: str, graph_all: bool) -> None:
                 f"{algorithm_name_upper} ({seeds_per_env[algorithm_name]} seeds)"
             )
             means = np.stack(means, axis=0)
-            means, stderror = (
-                np.mean(means, axis=0),
-                np.std(means, axis=0) / np.sqrt(means.shape[0]),
-            )
+
+            # calculate just average
+            if aggregation_metric == "average":
+                means, stderror = (
+                    np.mean(means, axis=0),
+                    np.std(means, axis=0) / np.sqrt(means.shape[0]),
+                )
+            # calculate IQM
+            elif aggregation_metric == "iqm":
+                means, stderror = (
+                    calc_iqm(means)["alg"],
+                    np.std(means, axis=0) / np.sqrt(means.shape[0]),
+                )
+
             if algorithm_name == "hyper":
                 step_size = 10_000
                 # add horizontal extensions if model-based
-                initial_exploration_steps = 10000 if "maze" in env_name else 64000
+                # initial_exploration_steps = 10000 if "maze" in env_name else 1000
+                initial_exploration_steps = 10000 if "maze" in env_name else 1000
+
                 model_based_x = (
                     np.arange(len(means)) * step_size + initial_exploration_steps
                 )
@@ -169,6 +201,7 @@ def main(env_name: str, graph_all: bool) -> None:
                     means,
                     label=plot_label,
                     color=algorithm_to_color[algorithm_name],
+                    linestyle="--" if algorithm_name == "bc" else "-",
                 )
                 plt.fill_between(
                     np.arange(len(means)) * step_size,
@@ -206,7 +239,7 @@ def main(env_name: str, graph_all: bool) -> None:
         plt.xlabel("Env. Steps")
         plt.title(full_env_name + ", $p_{tremble}=$" + str(p_tremble))
 
-        fig_save_path = Path("figures", f"{env_name}_results.png")
+        fig_save_path = Path("figures", f"{env_name}_results_{aggregation_metric}.png")
         fig_save_path.parent.mkdir(exist_ok=True, parents=True)
         print(f"Saving figure to {fig_save_path}")
         plt.savefig(fig_save_path, bbox_inches="tight")
@@ -218,11 +251,20 @@ if __name__ == "__main__":
     argparser.add_argument(
         "--env",
         type=str,
+        nargs="+",
         choices=["ant", "hopper", "humanoid", "walker", "maze-diverse", "maze-play"],
         default="hopper",
     )
     argparser.add_argument(
         "--all", action="store_true", default=False, help="Plot all environments"
     )
+    argparser.add_argument(
+        "-am",
+        "--aggregation_metric",
+        type=str,
+        default="average",
+        choices=["average", "iqm"],
+        help="Whether to take average or inter-quantile mean",
+    )
     args = argparser.parse_args()
-    main(args.env, args.all)
+    main(args.env, args.all, args.aggregation_metric)

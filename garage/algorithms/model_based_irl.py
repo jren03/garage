@@ -1,9 +1,10 @@
 """
 This code is extended from https://github.com/vvanirudh/LAMPS-MBRL/blob/master/MujocoSysID/mbrl/algorithms/lamps.py
-and follows largely the same structure. The main difference is the addition a 
+and follows largely the same structure. The main difference is the addition a
 different reset function within the model and switching the SAC policy optimizer
 to TD3-BC for antmaze experiments.
 """
+
 import os
 from typing import Any, Dict, Optional, Sequence, Tuple, cast
 
@@ -140,11 +141,11 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
     )  # to store only offline data
     expert_dataset = demos_dict["dataset"]
     hybrid_buffer.add_batch(
-        expert_dataset["observations"][: cfg.algorithm.initial_exploration_steps],
-        expert_dataset["actions"][: cfg.algorithm.initial_exploration_steps],
-        expert_dataset["next_observations"][: cfg.algorithm.initial_exploration_steps],
-        expert_dataset["rewards"][: cfg.algorithm.initial_exploration_steps],
-        expert_dataset["terminals"][: cfg.algorithm.initial_exploration_steps],
+        expert_dataset["observations"][: cfg.overrides.initial_expert_steps],
+        expert_dataset["actions"][: cfg.overrides.initial_expert_steps],
+        expert_dataset["next_observations"][: cfg.overrides.initial_expert_steps],
+        expert_dataset["rewards"][: cfg.overrides.initial_expert_steps],
+        expert_dataset["terminals"][: cfg.overrides.initial_expert_steps],
     )
     expert_buffer.add_batch(
         expert_dataset["observations"][: cfg.overrides.expert_dataset_size],
@@ -156,7 +157,7 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
     random_explore = cfg.algorithm.random_initial_explore
     mbrl_common.rollout_agent_trajectories(
         env,
-        cfg.algorithm.initial_exploration_steps,
+        cfg.overrides.initial_exploration_steps,
         mbrl_planning.RandomAgent(env) if random_explore else agent,
         {} if random_explore else {"sample": True, "batched": False},
         replay_buffer=policy_buffer,
