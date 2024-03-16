@@ -262,7 +262,7 @@ if __name__ == "__main__":
         "-am",
         "--aggregation_metric",
         type=str,
-        default="average",
+        default="iqm",
         choices=["average", "iqm"],
         help="Whether to take average or inter-quantile mean",
     )
