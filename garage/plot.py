@@ -235,7 +235,10 @@ def main(env_name: str, graph_all: bool, aggregation_metric: str) -> None:
             )
 
         plt.legend(ncol=2, fontsize=8, loc="lower right")
-        plt.ylabel("Mean of $J(\\pi)$")
+        if aggregation_metric == "average":
+            plt.ylabel("Mean of $J(\\pi)$")
+        else:
+            plt.ylabel("IQM of $J(\\pi)$")
         plt.xlabel("Env. Steps")
         plt.title(full_env_name + ", $p_{tremble}=$" + str(p_tremble))
 

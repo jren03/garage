@@ -4,6 +4,9 @@
 *exp
 *csv_results
 
+# ignore plots with average
+*figures/*average.png
+
 # Font files
 *.ttf
 

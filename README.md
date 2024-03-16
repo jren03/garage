@@ -12,6 +12,20 @@ This repository contains implementations of the algorithms presented in [Hybrid 
 
 This repository implements **hybrid training** in model-free and model-based inverse reinforcement learning. Specifically, we present two novel algorithms: `HyPE` and `HyPER`. At a high level, hybrid training is done by sampling from two buffers, one buffer that contains offline expert demonstrations and one buffer that contains on-policy transitions from the actor during policy updates. This is in contrast to standard inverse RL algorithms, that effectively ignore the expert demonstrations during policy optimization and therefore pay a higher interaction complexity than necessary.
 
+<div class="collage">
+    <div class="column" align="center">
+        <div class="row" align="center">
+            <img src="https://github.com/jren03/garage/blob/main/garage/figures/humanoid_results_iqm.png" alt="Humanoid" width="40%">
+            <img src="https://github.com/jren03/garage/blob/main/garage/figures/walker_results_iqm.png" alt="Walker" width="40%">
+        </div>
+        <div class="row" align="center">
+            <img src="https://github.com/jren03/garage/blob/main/garage/figures/ant_results_iqm.png" alt="Ant" width="40%">
+            <img src="https://github.com/jren03/garage/blob/main/garage/figures/hopper_results_iqm.png" alt="Hopper" width="40%">
+        </div>
+    </div>
+</div>
+
+
 We implement `HyPE` and `HyPER` in practice through [`model_free_irl.py`](garage/algorithms/model_free_irl.py) and [`model_based_irl.py`](garage/algorithms/model_based_irl.py), respectively. More information regarding model-free/model-based inverse reinforcement learning as well as specific implementation details can be found [here](garage/algorithms/README.md).
 
 ## Table of Contents
