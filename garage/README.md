@@ -53,7 +53,7 @@ To train and collect demonstrations for new environments, please see the details
 
 ### Hyperparameter Search
 
-There are a number of parameters we found to be particularly important in stablizing `HyPE` and `HyPER` performance across various environments, which we highlight below using hydra command-line syntax.
+There are a number of parameters we found to be particularly important in stablizing `HyPE` and `HyPER` performance across various environments, which we highlight below using hydra command-line syntax:
 
 For all experiments:
 * `overrides.discriminator.lr`: initial learning rate of discriminator. We recommend searching over `[1e-3, 8e-3, 1e-4, 8e-4]` as an initial starting point.
@@ -64,6 +64,8 @@ For model-free experiments specifically:
 
 For model-based experiments specifically:
 * `overrides.model_hid_size`: the size of the model. For some environments such as `Humanoid`, we find that a larger model size is importance for quicker convergence.
+* `overrides.policy_updates_every_steps`: how many policy updates per model step. In practice, we find a number between 2 to 5 to work best for our environments.
+* `overrides.freq_train_model`: how frequently to update the model. Especially in the case where the model is pretrained (as in `antmaze`), this value can be rather large (~1k).
 * `overrides.ema_agent`: whether to use the EMA of the policy weights during inference. 
 * `overrides.schedule_model_lr`: whether to decay the learning rate of the model.
 * `overrides.schedule_actor_lr`: whether to decay the learning rate of the actor.
