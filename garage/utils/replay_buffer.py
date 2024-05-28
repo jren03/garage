@@ -169,7 +169,10 @@ class HybridReplayBuffer(ReplayBuffer):
         return ratio
 
     def _get_samples(
-        self, batch_inds: np.ndarray, env: Optional[VecNormalize] = None
+        self,
+        batch_inds: np.ndarray,
+        env: Optional[VecNormalize] = None,
+        sample_expert_only=False,
     ) -> ReplayBufferSamples:
         num_samples = len(batch_inds)
         if self.hybrid_sampling:
@@ -236,7 +239,6 @@ class HybridReplayBuffer(ReplayBuffer):
                     ),
                     axis=0,
                 )
-
             data = (
                 obs,
                 actions,
@@ -245,7 +247,38 @@ class HybridReplayBuffer(ReplayBuffer):
                 self._normalize_reward(rewards.reshape(-1, 1), env),
             )
             return ReplayBufferSamples(*tuple(map(self.to_torch, data)))
+
+        elif sample_expert_only:
+            # Sample only from expert buffer
+            env_indices = np.random.randint(
+                0, high=self.n_envs, size=(len(batch_inds),)
+            )
+            if self.optimize_memory_usage:
+                next_obs = self._normalize_obs(
+                    self.expert_states[
+                        (batch_inds + 1) % self.buffer_size, env_indices, :
+                    ],
+                    env,
+                )
+            else:
+                next_obs = self._normalize_obs(
+                    self.expert_next_states[batch_inds, env_indices, :], env
+                )
+            data = (
+                self._normalize_obs(
+                    self.expert_states[batch_inds, env_indices, :], env
+                ),
+                self.expert_actions[batch_inds, env_indices, :],
+                next_obs,
+                (self.expert_dones[batch_inds, env_indices]).reshape(-1, 1),
+                self._normalize_reward(
+                    self.expert_rewards[batch_inds, env_indices].reshape(-1, 1), env
+                ),
+            )
+            return ReplayBufferSamples(*tuple(map(self.to_torch, data)))
+
         else:
+            # Sample only from learner buffer
             env_indices = np.random.randint(
                 0, high=self.n_envs, size=(len(batch_inds),)
             )
@@ -271,6 +304,31 @@ class HybridReplayBuffer(ReplayBuffer):
                 ),
             )
             return ReplayBufferSamples(*tuple(map(self.to_torch, data)))
+
+    def sample_expert_only(self, batch_size, env):
+        """
+        Sample only a batch from the expert dataset. Can be used
+        downstream in BC regularization.
+        Custom sampling when using memory efficient variant,
+        as we should not sample the element with index `self.pos`
+        See https://github.com/DLR-RM/stable-baselines3/pull/28#issuecomment-637559274
+
+        :param batch_size: (int) Number of element to sample
+        :param env: (Optional[VecNormalize]) associated gym VecEnv
+            to normalize the observations/rewards when sampling
+        :return: (Union[RolloutBufferSamples, ReplayBufferSamples])
+        """
+        if not self.optimize_memory_usage:
+            return super().sample(batch_size=batch_size, env=env)
+        # Do not sample the element with index `self.pos` as the transitions is invalid
+        # (we use only one array to store `obs` and `next_obs`)
+        if self.full:
+            batch_inds = (
+                np.random.randint(1, self.buffer_size, size=batch_size) + self.pos
+            ) % self.buffer_size
+        else:
+            batch_inds = np.random.randint(0, self.pos, size=batch_size)
+        return self._get_samples(batch_inds, env=env, sample_expert_only=True)
 
     def normalize_expert_obs(self, obs: np.ndarray) -> np.ndarray:
         def compute_mean_std(states: np.ndarray, eps: float):

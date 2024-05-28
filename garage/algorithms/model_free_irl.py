@@ -132,7 +132,7 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
 
     # --------------- Logging ---------------
     work_dir = os.getcwd()
-    logger = Logger(work_dir)
+    logger = Logger(work_dir, cfg)
     log_name = f"{cfg.algorithm.name}_{env_name}"
     logger.register_group(
         log_name,

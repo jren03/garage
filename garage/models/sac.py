@@ -3,6 +3,7 @@ Subclass of SB3 SAC agent (https://github.com/hill-a/stable-baselines/blob/maste
 
 This reimplementation allows for relabelling and dual-buffer sampling. Changes are marked with "BEGIN CHANGES" and "END CHANGES".
 """
+
 import torch as th
 from stable_baselines3 import SAC as SB3_SAC
 from stable_baselines3.common.utils import polyak_update
@@ -93,8 +94,8 @@ class SAC(SB3_SAC):
                 # td error + entropy term
 
                 # ----------- BEGIN CHANGES ------------
-                # Relabel with current reward function. 
-                # See description here under bullet point 1 here: 
+                # Relabel with current reward function.
+                # See description here under bullet point 1 here:
                 # https://github.com/jren03/garage/tree/main/garage/algorithms#model-free-inverse-reinforcement-learning
                 if self.relabel_rewards:
                     # Get the negative of reward from the discriminator (since we use cost)
@@ -145,9 +146,13 @@ class SAC(SB3_SAC):
 
             # ----------- BEGIN CHANGES ------------
             if self.bc_reg:
+                expert_data = self.replay_buffer.sample_expert_only(
+                    batch_size, env=self._vec_normalize_env
+                )
+                actions_bc, _ = self.actor.action_log_prob(expert_data.observations)
                 actor_loss = (
                     ent_coef * log_prob - min_qf_pi
-                ).mean() + self.bc_weight * F.mse_loss(actions_pi, replay_data.actions)
+                ).mean() + self.bc_weight * F.mse_loss(actions_bc, expert_data.actions)
             else:
                 actor_loss = (ent_coef * log_prob - min_qf_pi).mean()
             # ----------- END CHANGES ------------

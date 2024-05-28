@@ -5,10 +5,14 @@
 import collections
 import csv
 import pathlib
+import uuid
+from datetime import datetime
 from typing import Counter, Dict, List, Mapping, Tuple, Union
 
 import termcolor
 import torch
+import wandb
+from omegaconf import OmegaConf
 
 LogFormatType = List[Tuple[str, str, str]]
 LogTypes = Union[int, float, torch.Tensor]
@@ -98,15 +102,27 @@ class Logger(object):
 
     Args:
         log_dir (str or pathlib.Path): the directory where to save the logs.
-        enable_back_compatible (bool, optional): if ``True``, this logger can be used in the
-            methods in the `pytorch_sac` library. Defaults to ``False``.
+        cfg (dict): the configuration dictionary. It will be saved to the wandb run if provided.
     """
 
-    def __init__(self, log_dir: Union[str, pathlib.Path]):
+    def __init__(
+        self,
+        log_dir: Union[str, pathlib.Path],
+        cfg: Dict,
+    ):
         self._log_dir = pathlib.Path(log_dir)
         self._log_dir.mkdir(parents=True, exist_ok=True)
         self._groups: Dict[str, Tuple[MetersGroup, int, str]] = {}
         self._group_steps: Counter[str] = collections.Counter()
+        self.wandb_log = cfg.wandb_log
+        if cfg.wandb_log:
+            wandb.init(
+                project="garage",
+                group=f"{cfg.algorithm.name}_{cfg.overrides.env}",
+                name=f"seed_{cfg.seed}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}",
+                id=f"{str(uuid.uuid4())[-5:]}",
+                config=OmegaConf.to_container(cfg),
+            )
 
     def register_group(
         self,
@@ -160,6 +176,8 @@ class Logger(object):
             if isinstance(value, torch.Tensor):
                 value = value.item()  # type: ignore
             meter_group.log(key, value)
+            if self.wandb_log:
+                wandb.log({key: value})
         self._group_steps[group_name] += 1
         if self._group_steps[group_name] % dump_frequency == 0:
             self._dump(group_name)
