@@ -13,4 +13,4 @@ python3-wget==0.0.2b1
 stable-baselines3==0.8.0
 termcolor==2.4.0
 torch==2.1.0
-wandb==0.16.0
+wandb==0.16.6

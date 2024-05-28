@@ -108,7 +108,7 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
     save_path = Path(
         PROJECT_ROOT,
         "garage",
-        "experiment_results_test",
+        "experiment_results",
         env_name,
         f"{cfg.algorithm.name}_{cfg.seed}.npz",
     )
@@ -120,7 +120,7 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
         agent.learn(total_timesteps=total_train_steps, bc=True)
     else:
         total_it = 0
-        tbar = tqdm(total=total_train_steps, ncols=5)
+        tbar = tqdm(total=total_train_steps, ncols=0)
         while total_it < total_train_steps:
             for batch in bc_dataloader:
                 states, actions = batch
