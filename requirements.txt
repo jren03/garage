@@ -1,0 +1,17 @@
+D4RL @ git+https://github.com/Farama-Foundation/D4RL.git@5ef61940a5cbee3146d5de6fab06351e41553788
+beartype==0.17.0
+gym==0.22.0
+omegaconf==2.0.6
+hydra-core==1.0.3
+mujoco-py==2.1.2.14
+Cython==0.29.37
+numpy==1.21.0
+overrides==7.4.0
+matplotlib==3.7.3
+seaborn==0.13.0
+python3-wget==0.0.2b1
+stable-baselines3==0.8.0
+termcolor==2.4.0
+torch==2.1.0
+wandb==0.16.6
+hugginggface_hub==0.24.0

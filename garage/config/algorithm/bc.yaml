@@ -1,0 +1,44 @@
+# @package _group_
+name: "bc"
+total_train_steps: 300_000
+total_eval_trajs: 50
+
+lr: 3e-4
+batch_size: 256
+
+# --------------------------------------------
+#          SAC Agent configuration
+# --------------------------------------------
+sac_agent:
+  bc_reg: True
+  bc_weight: ${overrides.actor.bc_weight}
+  policy: ${overrides.actor.policy}
+  verbose: 0
+  policy_kwargs: ${overrides.actor.policy_kwargs}
+  ent_coef: "auto"
+  train_freq: ${overrides.actor.train_freq}
+  gradient_steps: ${overrides.actor.gradient_steps}
+  gamma: ${overrides.actor.gamma}
+  tau: ${overrides.actor.tau}
+  device: ${device}
+
+
+# --------------------------------------------
+#          TD3-BC Agent configuration
+# --------------------------------------------
+td3_agent:
+  _target_: garage.models.td3_bc.TD3_BC
+  env: ???
+  expert_buffer: ???
+  learner_buffer: ???
+  discriminator: ???
+  cfg: ???
+  discount: ${overrides.actor.discount}
+  tau: ${overrides.actor.tau}
+  policy_noise_scalar: ${overrides.actor.policy_noise_scalar}
+  noise_clip_scalar: ${overrides.actor.noise_clip_scalar}
+  policy_freq: ${overrides.actor.policy_freq}
+  alpha: ${overrides.actor.alpha}
+  decay_lr: ${overrides.actor.decay_lr}
+  hybrid_sampling: false
+  device: ${device}

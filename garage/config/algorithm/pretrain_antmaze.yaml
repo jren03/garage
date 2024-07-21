@@ -1,0 +1,33 @@
+# @package _group_
+name: "pretrain_antmaze"
+
+is_model_based: true
+total_env_steps: ${overrides.total_env_steps}
+
+normalize: true
+normalize_double_precision: true
+target_is_delta: true
+learned_rewards: true
+freq_train_model: ${overrides.freq_train_model}
+
+sac_samples_action: true
+initial_exploration_steps: ${overrides.initial_exploration_steps}
+random_initial_explore: false
+
+# --------------------------------------------
+#          Dynamics Model configuration
+# --------------------------------------------
+dynamics_model:
+  _target_: mbrl.models.GaussianMLP
+  device: ${device}
+  num_layers: 4
+  in_size: ???
+  out_size: ???
+  ensemble_size: 7
+  hid_size: 200
+  deterministic: false
+  propagation_method: random_model
+  learn_logvar_bounds: false  # so far this works better
+  clip: ${overrides.model_clip_output}
+  activation_fn_cfg:
+    _target_: torch.nn.SiLU

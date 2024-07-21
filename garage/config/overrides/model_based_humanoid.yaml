@@ -1,0 +1,55 @@
+# @package _group_
+env: "humanoid_truncated_obs"
+
+p_tremble: 0.025
+bc_init_steps: 0
+initial_exploration_steps: 1000
+initial_expert_steps: ${overrides.expert_dataset_size}
+
+expert_dataset_size: 64_000
+total_env_steps: 150_000
+eval_frequency: 10_000
+epoch_length: 1000
+
+num_elites: 5
+patience: 10
+model_lr: 0.0003
+model_wd: 5e-5
+model_batch_size: 256
+validation_ratio: 0.2
+freq_train_model: 125
+effective_model_rollouts_per_step: 400
+rollout_schedule: [20, 300, 1, 25]
+num_policy_updates_per_step: 20
+policy_updates_every_steps: 2
+num_epochs_to_retain_learner_buffer: 1
+model_hid_size: 400
+
+ema_agent: true
+model_clip_output: false
+schedule_model_lr: false
+schedule_actor_lr: true
+
+train_discriminator: true
+discriminator:
+  lr: 8e-4
+  train_every: 10000
+  num_sample_trajectories: 4
+  num_update_steps: 1
+  batch_size: 4096
+  clip_output: false
+  weight_decay: false
+  ensemble_size: 7  # 1 is equivalent to no ensemble
+
+sac_gamma: 0.99
+sac_tau: 0.005
+sac_alpha: 0.2
+sac_policy: "Gaussian"
+sac_target_update_interval: 4
+sac_automatic_entropy_tuning: true
+sac_target_entropy: -1 # ignored, since entropy tuning is false
+sac_hidden_size: 1024
+sac_lr: 0.0001
+sac_batch_size: 256
+sac_reset_ratio: 0.5  # percent of time to reset to expert states in model
+sac_decay_horizon: 10000  # decay horizon for the learning rate

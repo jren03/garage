@@ -1,0 +1,20 @@
+defaults:
+  - algorithm: hype
+  - overrides: model_free_hopper
+
+device: "cuda:0"
+seed: 1
+debug_mode: false
+
+wandb_log: false
+eval_frequency: ${overrides.eval_frequency}
+is_model_based: ${algorithm.is_model_based}
+
+experiment: default
+root_dir: "./experiment_logs"
+hydra:
+  run:
+    dir: ${root_dir}/${algorithm.name}/${experiment}/${overrides.env}/${now:%m.%d}/${now:%H%M%S}-seed${seed}
+
+  sweep:
+    dir: ${root_dir}/${algorithm.name}/${experiment}/${overrides.env}/${now:%m.%d}/${now:%H%M%S}-seed${seed}
