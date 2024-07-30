@@ -29,6 +29,7 @@ ema_agent: false
 model_clip_output: true
 schedule_model_lr: false
 schedule_actor_lr: false
+learner_batch_size: ${overrides.sac_batch_size}
 
 train_discriminator: true
 discriminator:

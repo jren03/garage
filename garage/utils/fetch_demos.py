@@ -56,6 +56,7 @@ def fetch_demos(
         qvel = data["qvel"]
         goals = data["goals"]
         Js = np.zeros_like(qpos)  # no expert rewards
+        traj_obs = traj_actions = traj_seeds = None  # no seeds for maze envs
     else:
         dataset = np.load(possible_data_path, allow_pickle=True)
         expert_dataset_size = (

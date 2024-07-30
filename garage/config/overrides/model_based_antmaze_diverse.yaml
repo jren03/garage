@@ -5,6 +5,7 @@ term_fn: "no_termination"
 p_tremble: 0.00
 bc_init_steps: 10_000
 initial_exploration_steps: 10_000
+initial_expert_steps: ${overrides.expert_dataset_size}
 pretrained_dynamics_model: True
 
 expert_dataset_size: 100_000
@@ -24,6 +25,8 @@ rollout_schedule: [20, 100, 1, 25]
 num_policy_updates_per_step: 20
 policy_updates_every_steps: 1
 num_epochs_to_retain_learner_buffer: 1
+model_hid_size: 200
+learner_batch_size: 256
 
 ema_agent: true
 model_clip_output: false

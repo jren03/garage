@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import gym
 import numpy as np
@@ -117,9 +117,9 @@ class ResetWrapper(gym.Wrapper):
         qpos: List[List[float]],
         qvel: List[List[float]],
         goals: List[List[float]],
-        obs: List[List[float]],
-        actions: List[List[float]],
-        seeds: List[List[float]],
+        obs: Optional[List[float]] = None,
+        actions: Optional[List[float]] = None,
+        seeds: Optional[List[float]] = None,
         reset_prob: float = 0.0,
     ) -> None:
         super().__init__(env)
@@ -131,6 +131,7 @@ class ResetWrapper(gym.Wrapper):
         self.obs = obs
         self.actions = actions
         self.seeds = seeds
+        self.reset_via_qpos = self.obs is None
         self.t = 0
         self.rng = np.random.default_rng()
 
@@ -160,9 +161,11 @@ class ResetWrapper(gym.Wrapper):
         if self.rng.random() < self.reset_prob:
             idx = np.random.choice(len(self.qpos))
             t = np.random.choice(min(len(self.qpos[idx]), self.T))
-            # self.env.set_state(self.qpos[idx][t], self.qvel[idx][t])
-            obs = self._rollout_until_timestep(traj_num=idx, num_steps=t)
-            assert np.allclose(obs, self.obs[idx][t])
+            if self.reset_via_qpos:
+                self.env.set_state(self.qpos[idx][t], self.qvel[idx][t])
+                obs = self.env.unwrapped._get_obs()
+            else:
+                obs = self._rollout_until_timestep(traj_num=idx, num_steps=t)
             self.t = t
             if self.is_maze:
                 with HiddenPrints():

@@ -18,5 +18,5 @@ for env in envs:
         repo_id="jren123/hybrid_irl_expert_demos",
         repo_type="dataset",
         allow_patterns=f"{env}/{env}_demos*.npz",
-        local_dir=f"/share/portal/jlr429/garage/experts/{env}/",
+        local_dir="experts",
     )

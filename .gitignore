@@ -1,8 +1,7 @@
-# logs
+# garage specific
+*temp
 *experiment_logs
 *experiment_results
-*exp
-*csv_results
 *figures/*average.png
 *.ttf
 *.npz

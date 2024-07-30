@@ -169,6 +169,9 @@ def parse_antmaze_demos(env_name):
         qvel.append(qvel_flat[start : term[i][0] + 1])
         goals.append(goals_flat[start : term[i][0] + 1])
         start = term[i][0] + 1
+    qpos = np.array(qpos, dtype=object)
+    qvel = np.array(qvel, dtype=object)
+    goals = np.array(goals, dtype=object)
 
     obs_goal_cat = np.concatenate(
         [dataset["observations"], dataset["infos/goal"]], axis=1
@@ -177,7 +180,8 @@ def parse_antmaze_demos(env_name):
         [
             obs_goal_cat[expert_ranges[i][0] : expert_ranges[i][1]]
             for i in range(len(expert_ranges))
-        ]
+        ],
+        dtype=object,
     )
 
     # antmaze-large trajectories are not all the same length, so we

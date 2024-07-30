@@ -6,9 +6,8 @@ Changes from https://github.com/gkswamy98/fast_irl/blob/master/learners/TD3_BC.p
 are flagged with BEGIN CHANGES and END CHANGES comments.
 """
 
-
 import copy
-from typing import cast, Optional, Tuple
+from typing import cast, Optional, Tuple, Union, Any
 
 import gym
 import numpy as np
@@ -208,46 +207,67 @@ class TD3_BC(nn.Module):
     def step(self, batch_size: int = 256, bc: bool = False) -> None:
         self.updates_made += 1
 
-        # -------------------------- BEGIN CHANGES --------------------------
-        if not bc and self.hybrid_sampling:
-            # 50/50 sample, loss function on all data
-            learner_batch = self.learner_buffer.sample(batch_size // 2)
-            if isinstance(self.learner_buffer, ReplayBuffer):
+        def process_reward_with_discriminator(
+            state: torch.Tensor, action: torch.Tensor, reward: torch.Tensor
+        ) -> torch.Tensor:
+            sa_pair = torch.cat([state, action], dim=1)
+            return -self.discriminator(sa_pair).reshape(reward.shape)
+
+        def sample_and_process_buffer(
+            buffer: Union[ReplayBuffer, Any],
+            batch_size: int,
+            process_with_discriminator: bool = True,
+        ) -> Tuple[
+            torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor
+        ]:
+            if isinstance(buffer, ReplayBuffer):
                 state, action, next_state, reward, not_done = self.split_mbrl_batch(
-                    learner_batch
+                    buffer.sample(batch_size)
                 )
+            elif isinstance(buffer, QReplayBuffer):
+                state, action, next_state, reward, not_done = buffer.sample(batch_size)
             else:
-                state, action, next_state, reward, not_done = learner_batch
-            if self.discriminator is not None:
-                reward = -self.discriminator(torch.cat([state, action], dim=1)).reshape(
-                    reward.shape
+                raise NotImplementedError
+            if process_with_discriminator and self.discriminator is not None:
+                reward = process_reward_with_discriminator(state, action, reward)
+            return state, action, next_state, reward, not_done
+
+        # -------------------------- BEGIN CHANGES --------------------------
+        if not bc:
+            if self.hybrid_sampling:
+                # For HyPE
+                (
+                    learner_state,
+                    learner_action,
+                    learner_next_state,
+                    learner_reward,
+                    learner_not_done,
+                ) = sample_and_process_buffer(self.learner_buffer, batch_size // 2)
+                exp_state, exp_action, exp_next_state, exp_reward, exp_not_done = (
+                    sample_and_process_buffer(self.expert_buffer, batch_size // 2)
                 )
-            (
-                exp_state,
-                exp_action,
-                exp_next_state,
-                exp_reward,
-                exp_not_done,
-            ) = self.expert_buffer.sample(batch_size // 2)
-            if self.discriminator is not None:
-                exp_reward = -self.discriminator(
-                    torch.cat([exp_state, exp_action], dim=1)
-                ).reshape(exp_reward.shape)
-            state = torch.cat([state, exp_state], dim=0)
-            action = torch.cat([action, exp_action], dim=0)
-            next_state = torch.cat([next_state, exp_next_state], dim=0)
-            reward = torch.cat([reward, exp_reward], dim=0)
-            not_done = torch.cat([not_done, exp_not_done], dim=0)
-            pi_data = False
-        # -------------------------- END CHANGES --------------------------
+
+                state = torch.cat([learner_state, exp_state], dim=0)
+                action = torch.cat([learner_action, exp_action], dim=0)
+                next_state = torch.cat([learner_next_state, exp_next_state], dim=0)
+                reward = torch.cat([learner_reward, exp_reward], dim=0)
+                not_done = torch.cat([learner_not_done, exp_not_done], dim=0)
+                pi_data = False
+            else:
+                # For MM, FILTER, and HyPER
+                state, action, next_state, reward, not_done = sample_and_process_buffer(
+                    self.learner_buffer, batch_size
+                )
+                pi_data = True
         else:
-            state, action, next_state, reward, not_done = self.expert_buffer.sample(
-                batch_size
+            # For BC pretraining
+            state, action, next_state, reward, not_done = sample_and_process_buffer(
+                self.expert_buffer, batch_size, process_with_discriminator=False
             )
             if self.discriminator is not None:
-                sa = torch.cat([state, action], dim=1)
-                reward = -self.discriminator(sa).reshape(reward.shape)
+                reward = process_reward_with_discriminator(state, action, reward)
             pi_data = False
+        # -------------------------- END CHANGES --------------------------
 
         with torch.no_grad():
             # Select action according to policy and add clipped noise

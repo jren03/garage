@@ -238,7 +238,7 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
             if steps_epoch == 0 or done:
                 obs, done = env.reset(), False
 
-            # --- Doing env step and adding to buffers ---
+            # --- Doing env step in real and adding to buffers ---
             next_obs, _, done, _ = mbrl_common.step_env_and_add_to_buffer(
                 env, obs, agent, {}, hybrid_buffer, policy_buffer
             )
@@ -304,18 +304,18 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
 
             # --------------- Agent Training -----------------
             for _ in range(cfg.overrides.num_policy_updates_per_step):
-                if is_maze:
-                    agent.step(bc=False)
-                elif (
+                if (
                     env_steps + 1
                 ) % cfg.overrides.policy_updates_every_steps != 0 or len(
                     learner_buffer
-                ) < cfg.overrides.sac_batch_size:
+                ) < cfg.overrides.learner_batch_size:
                     break
+                elif is_maze:
+                    agent.step(bc=False, batch_size=cfg.overrides.learner_batch_size)
                 else:
                     agent.sac_agent.adv_update_parameters(
                         learner_buffer,
-                        cfg.overrides.sac_batch_size,
+                        cfg.overrides.learner_batch_size,
                         reverse_mask=True,
                     )
                 if cfg.overrides.ema_agent:

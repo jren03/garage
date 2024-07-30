@@ -114,10 +114,9 @@ def main(env_name: str, graph_all: bool, aggregation_metric: str) -> None:
         )
         for algorithm_name, means in algorithm_to_means.items():
             algorithm_name_upper = algorithm_name.replace("_", "-").upper()
-            plot_label = f"{algorithm_name_upper} (10 seeds)"
-            # plot_label = (
-            #     f"{algorithm_name_upper} ({seeds_per_env[algorithm_name]} seeds)"
-            # )
+            plot_label = (
+                f"{algorithm_name_upper} ({seeds_per_env[algorithm_name]} seeds)"
+            )
             means = np.stack(means, axis=0)
 
             # calculate just average
