@@ -61,12 +61,11 @@ conda create -n hyirl python=3.8.18 -y
 conda activate hyirl
 pip install -r requirements.txt
 ```
-then
+then, assuming you are at the top-level of this repo, run
 ```
-export PYTHONPATH=garage:<absolute_path_to_cwd>
+export PYTHONPATH=${PYTHONPATH}:${PWD}
 export D4RL_SUPPRESS_IMPORT_ERROR=1
-```
-where `<absolute_path_to_cwd>` is the root directory of this repository. 
+``` 
 
 ## Experiments :computer:
 

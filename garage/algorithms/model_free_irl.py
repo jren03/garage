@@ -158,7 +158,7 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
     total_env_steps = cfg.algorithm.total_env_steps
     agent_train_steps = discriminator_cfg.train_every
     expert_sa_pairs = demos_dict["expert_sa_pairs"].to(device)
-    tbar = tqdm(range(total_env_steps), ncols=0)
+    tbar = tqdm(range(total_env_steps), ncols=0, desc="Env Interaction Steps")
     while env_steps < total_env_steps:
         if not disc_steps == 0:
             disc_lr = discriminator_cfg.lr / disc_steps

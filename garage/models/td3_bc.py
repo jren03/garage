@@ -205,7 +205,8 @@ class TD3_BC(nn.Module):
         return state, action, next_state, reward, done
 
     def step(self, batch_size: int = 256, bc: bool = False) -> None:
-        self.updates_made += 1
+        if not bc:
+            self.updates_made += 1
 
         def process_reward_with_discriminator(
             state: torch.Tensor, action: torch.Tensor, reward: torch.Tensor
