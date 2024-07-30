@@ -76,5 +76,5 @@ td3_agent:
   policy_freq: ${overrides.actor.policy_freq}
   alpha: ${overrides.actor.alpha}
   decay_lr: ${overrides.actor.decay_lr}
-  hybrid_sampling: false
+  hybrid_sampling: True
   device: ${device}
