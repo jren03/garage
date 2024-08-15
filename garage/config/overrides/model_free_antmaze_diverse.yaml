@@ -28,4 +28,6 @@ actor:
   policy_freq: 2
   alpha: 2.5
   decay_lr: False
+  actor_wd: 0.0
+  critic_wd: 0.0
 

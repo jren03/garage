@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import collections
+import math
 import csv
 import pathlib
 import uuid
@@ -52,21 +53,39 @@ class MetersGroup(object):
     def _dump_to_csv(self, data):
         if self._csv_writer is None:
             self._csv_writer = csv.DictWriter(
-                self._csv_file, fieldnames=sorted(data.keys()), restval=0.0
+                self._csv_file,
+                fieldnames=[f[0] for f in self._formatting] + ["step"],
+                restval=float("nan"),  # Use NaN for missing values
             )
             self._csv_writer.writeheader()
-        self._csv_writer.writerow(data)
+
+        # Only include keys that are in the formatting
+        filtered_data = {k: data.get(k, float("nan")) for k, _, _ in self._formatting}
+        filtered_data["step"] = data["step"]
+
+        self._csv_writer.writerow(filtered_data)
         self._csv_file.flush()
 
     @staticmethod
     def _format(key: str, value: float, format_type: str):
         if format_type == "int":
-            value = int(value)
-            return f"{key}: {value}"
+            return (
+                f"{key}: {int(value)}"
+                if not isinstance(value, float) or not math.isnan(value)
+                else f"{key}: N/A"
+            )
         elif format_type == "float":
-            return f"{key}: {value:.06f}"
+            return (
+                f"{key}: {value:.06f}"
+                if not isinstance(value, float) or not math.isnan(value)
+                else f"{key}: N/A"
+            )
         elif format_type == "time":
-            return f"{key}: {value:04.1f} s"
+            return (
+                f"{key}: {value:04.1f} s"
+                if not isinstance(value, float) or not math.isnan(value)
+                else f"{key}: N/A"
+            )
         else:
             raise ValueError(f"Invalid format type: {format_type}")
 
@@ -74,18 +93,26 @@ class MetersGroup(object):
         prefix = termcolor.colored(prefix, color)
         pieces = [f"| {prefix: <14}"]
         for key, disp_key, ty in self._formatting:
-            value = data.get(key, 0)
+            value = data.get(key, float("nan"))
             pieces.append(self._format(disp_key, value, ty))
         print(" | ".join(pieces))
 
-    def dump(self, step: int, prefix: str, save: bool = True, color: str = "yellow"):
+    def dump(
+        self,
+        step: int,
+        prefix: str,
+        save: bool = True,
+        color: str = "yellow",
+        terminal_silent=False,
+    ):
         if len(self._meters) == 0:
             return
         if save:
             data = {key: meter.value() for key, meter in self._meters.items()}
             data["step"] = step
             self._dump_to_csv(data)
-            self._dump_to_console(data, prefix, color)
+            if not terminal_silent:
+                self._dump_to_console(data, prefix, color)
         self._meters.clear()
 
 
@@ -114,8 +141,8 @@ class Logger(object):
         self._log_dir.mkdir(parents=True, exist_ok=True)
         self._groups: Dict[str, Tuple[MetersGroup, int, str]] = {}
         self._group_steps: Counter[str] = collections.Counter()
-        self.wandb_log = cfg.wandb_log
-        if cfg.wandb_log:
+        self.wandb = cfg.wandb
+        if cfg.wandb:
             wandb.init(
                 project="garage",
                 group=f"{cfg.algorithm.name}_{cfg.overrides.env}",
@@ -130,6 +157,7 @@ class Logger(object):
         log_format: LogFormatType,
         dump_frequency: int = 1,
         color: str = "yellow",
+        terminal_silent: bool = False,
     ):
         """Register a logging group.
 
@@ -145,13 +173,14 @@ class Logger(object):
                 should the logger dump the data collected since the last call. If
                 ``dump_frequency > 1``, then the data collected between calls is averaged.
             color (str): a color to use for this group in the console.
+            terminal_silent (bool): if True, the logger will not print to the terminal.
 
         """
         if group_name in self._groups:
             print(f"Group {group_name} has already been registered.")
             return
         new_group = MetersGroup(self._log_dir / group_name, formatting=log_format)
-        self._groups[group_name] = (new_group, dump_frequency, color)
+        self._groups[group_name] = (new_group, dump_frequency, color, terminal_silent)
         self._group_steps[group_name] = 0
 
     def log_histogram(self, *_args):
@@ -171,12 +200,12 @@ class Logger(object):
         """
         if group_name not in self._groups:
             raise ValueError(f"Group {group_name} has not been registered.")
-        meter_group, dump_frequency, color = self._groups[group_name]
+        meter_group, dump_frequency, color, terminal_silent = self._groups[group_name]
         for key, value in data.items():
             if isinstance(value, torch.Tensor):
                 value = value.item()  # type: ignore
             meter_group.log(key, value)
-            if self.wandb_log:
+            if self.wandb:
                 wandb.log({key: value})
         self._group_steps[group_name] += 1
         if self._group_steps[group_name] % dump_frequency == 0:
@@ -185,5 +214,11 @@ class Logger(object):
     def _dump(self, group_name: str, save: bool = True):
         if group_name not in self._groups:
             raise ValueError(f"Group {group_name} has not been registered.")
-        meter_group, dump_frequency, color = self._groups[group_name]
-        meter_group.dump(self._group_steps[group_name], group_name, save, color=color)
+        meter_group, dump_frequency, color, terminal_silent = self._groups[group_name]
+        meter_group.dump(
+            self._group_steps[group_name],
+            group_name,
+            save,
+            color=color,
+            terminal_silent=terminal_silent,
+        )

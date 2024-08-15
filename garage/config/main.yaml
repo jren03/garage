@@ -6,9 +6,15 @@ device: "cuda:0"
 seed: 1
 debug_mode: false
 
-wandb_log: false
+wandb: false
+log_frequency: ${algorithm.log_frequency} # log every n env steps
 eval_frequency: ${overrides.eval_frequency}
 is_model_based: ${algorithm.is_model_based}
+
+critic_clip: 1.0
+use_oadam: true
+actor_wd: 1e-4
+critic_wd: 1e-4
 
 experiment: default
 root_dir: "./experiment_logs"

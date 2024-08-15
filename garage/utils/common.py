@@ -20,10 +20,36 @@ MF_LOG_FORMAT = [
     ("mean_reward", "MR", "float"),
     ("std_reward", "SR", "float"),
 ]
-
 MB_LOG_FORMAT = MF_LOG_FORMAT + [
     ("rollout_length", "RL", "int"),
 ]
+AGENT_LOG_FORMAT = [
+    ("agent/critic_loss", "c_loss", "float"),
+    ("agent/actor_loss", "a_loss", "float"),
+    ("agent/qf1_loss", "q1_loss", "float"),
+    ("agent/qf2_loss", "q2_loss", "float"),
+    ("agent/policy_loss", "p_loss", "float"),
+    ("agent/alpha_loss", "al_loss", "float"),
+    ("agent/critic_grad_norm", "c_grad", "float"),
+    ("agent/actor_grad_norm", "a_grad", "float"),
+    ("agent/policy_grad_norm", "p_grad", "float"),
+    ("agent/q_values_mean", "q_mean", "float"),
+    ("agent/q_values_std", "q_std", "float"),
+    ("agent/target_q_mean", "tq_mean", "float"),
+    ("agent/target_q_std", "tq_std", "float"),
+    ("agent/reward_mean", "r_mean", "float"),
+    ("agent/reward_std", "r_std", "float"),
+    ("agent/log_pi_mean", "lp_mean", "float"),
+    ("agent/log_pi_std", "lp_std", "float"),
+    ("agent/alpha", "alpha", "float"),
+    ("agent/lambda_value", "lambda", "float"),
+    ("agent/action_mean", "act_mean", "float"),
+    ("agent/action_std", "act_std", "float"),
+    ("agent/buffer_size", "buf_size", "int"),
+    ("agent/learning_rate_critic", "lr_crit", "float"),
+    ("agent/learning_rate_actor", "lr_act", "float"),
+]
+
 
 ENV_ABBRV_TO_FULL = {
     "ant": "Ant-v3",

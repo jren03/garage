@@ -5,6 +5,7 @@ total_eval_trajs: 50
 
 lr: 3e-4
 batch_size: 256
+log_frequency: 10000
 
 # --------------------------------------------
 #          SAC Agent configuration
@@ -33,6 +34,8 @@ td3_agent:
   learner_buffer: ???
   discriminator: ???
   cfg: ???
+  actor_wd: ${overrides.actor.actor_wd}
+  critic_wd: ${overrides.actor.critic_wd}
   discount: ${overrides.actor.discount}
   tau: ${overrides.actor.tau}
   policy_noise_scalar: ${overrides.actor.policy_noise_scalar}

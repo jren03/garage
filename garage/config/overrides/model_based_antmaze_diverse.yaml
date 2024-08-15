@@ -19,12 +19,12 @@ model_lr: 0.0003
 model_wd: 5e-5
 model_batch_size: 256
 validation_ratio: 0.2
-freq_train_model: 1000
+freq_train_model: 2000
 effective_model_rollouts_per_step: 400
 rollout_schedule: [20, 100, 1, 25]
 num_policy_updates_per_step: 20
 policy_updates_every_steps: 1
-num_epochs_to_retain_learner_buffer: 1
+num_epochs_to_retain_learner_buffer: 2
 model_hid_size: 200
 learner_batch_size: 256
 
@@ -50,6 +50,7 @@ decay_lr_scheduler:
   T_max: 30000
   eta_min: 1.0e-07
 
+critic_clip: 1
 actor:
   bc_reg: False
   bc_weight: 1.0
@@ -60,3 +61,5 @@ actor:
   policy_freq: 2
   alpha: 2.5
   decay_lr: False
+  actor_wd: 1e-4
+  critic_wd: 1e-4

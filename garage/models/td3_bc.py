@@ -7,7 +7,7 @@ are flagged with BEGIN CHANGES and END CHANGES comments.
 """
 
 import copy
-from typing import cast, Optional, Tuple, Union, Any
+from typing import cast, Optional, Tuple, Union, Any, Dict
 
 import gym
 import numpy as np
@@ -87,6 +87,8 @@ class TD3_BC(nn.Module):
         learner_buffer: QReplayBuffer,
         discriminator: nn.Module,
         cfg: omegaconf.DictConfig,
+        actor_wd: float = 0.0,
+        critic_wd: float = 0.0,
         discount: float = 0.99,
         tau: float = 0.005,
         policy_noise_scalar: float = 0.2,
@@ -104,11 +106,17 @@ class TD3_BC(nn.Module):
 
         self.actor = Actor(state_dim, action_dim, max_action).to(device)
         self.actor_target = copy.deepcopy(self.actor)
-        self.actor_optimizer = OAdam(self.actor.parameters(), lr=3e-4)
+        self.actor_optimizer = OAdam(
+            self.actor.parameters(),
+            lr=3e-4,
+            weight_decay=actor_wd,
+        )
 
         self.critic = Critic(state_dim, action_dim).to(device)
         self.critic_target = copy.deepcopy(self.critic)
-        self.critic_optimizer = OAdam(self.critic.parameters(), lr=3e-4)
+        self.critic_optimizer = OAdam(
+            self.critic.parameters(), lr=3e-4, weight_decay=critic_wd
+        )
 
         self.max_action = max_action
         self.discount = discount
@@ -204,7 +212,13 @@ class TD3_BC(nn.Module):
         done = 1 - not_done
         return state, action, next_state, reward, done
 
-    def step(self, batch_size: int = 256, bc: bool = False) -> None:
+    def step(
+        self,
+        batch_size: int = 256,
+        bc: bool = False,
+        critic_clip=float("inf"),
+        actor_clip=float("inf"),
+    ) -> Dict[str, float]:
         if not bc:
             self.updates_made += 1
 
@@ -270,6 +284,7 @@ class TD3_BC(nn.Module):
             pi_data = False
         # -------------------------- END CHANGES --------------------------
 
+        logs = {}
         with torch.no_grad():
             # Select action according to policy and add clipped noise
             noise = (torch.randn_like(action) * self.policy_noise).clamp(
@@ -292,13 +307,18 @@ class TD3_BC(nn.Module):
         critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(
             current_Q2, target_Q
         )
+        logs["critic_loss"] = critic_loss.item()
 
         # Optimize the critic
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
+        critic_grad_norm = torch.nn.utils.clip_grad_norm_(
+            self.critic.parameters(), critic_clip
+        )
         self.critic_optimizer.step()
         if self.schedule and not bc:
             self.critic_scheduler.step()
+        logs["critic_grad_norm"] = critic_grad_norm.item()
 
         # Delayed policy updates
         if self.updates_made % self.policy_freq == 0:
@@ -310,13 +330,18 @@ class TD3_BC(nn.Module):
             actor_loss = -lmbda * Q.mean() * (1 - bc) + F.mse_loss(pi, action) * (
                 1 - pi_data
             )
+            logs["actor_loss"] = actor_loss.item()
 
             # Optimize the actor
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
+            actor_grad_norm = torch.nn.utils.clip_grad_norm_(
+                self.actor.parameters(), actor_clip
+            )
             self.actor_optimizer.step()
             if self.schedule and not bc:
                 self.actor_scheduler.step()
+            logs["actor_grad_norm"] = actor_grad_norm.item()
 
             # Update the frozen target models
             for param, target_param in zip(
@@ -332,6 +357,14 @@ class TD3_BC(nn.Module):
                 target_param.data.copy_(
                     self.tau * param.data + (1 - self.tau) * target_param.data
                 )
+
+        logs["q_values_mean"] = current_Q1.mean().item()
+        logs["q_values_std"] = current_Q1.std().item()
+        logs["target_q_mean"] = target_Q.mean().item()
+        logs["target_q_std"] = target_Q.std().item()
+        logs["reward_mean"] = reward.mean().item()
+        logs["reward_std"] = reward.std().item()
+        return logs
 
     def save(self, filename: str) -> None:
         torch.save(self.critic.state_dict(), filename + "_critic")

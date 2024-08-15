@@ -26,7 +26,12 @@ from garage.mbrl.planning.sac_wrapper import SACAgent
 from garage.mbrl.util import ReplayBuffer
 from garage.mbrl.util.math import truncated_linear
 from garage.models.discriminator import Discriminator, DiscriminatorEnsemble
-from garage.utils.common import PROJECT_ROOT, MB_LOG_FORMAT, rollout_agent_in_real_env
+from garage.utils.common import (
+    PROJECT_ROOT,
+    MB_LOG_FORMAT,
+    AGENT_LOG_FORMAT,
+    rollout_agent_in_real_env,
+)
 from garage.utils.ema_wrapper import EMA
 from garage.utils.gym_wrappers import (
     GoalWrapper,
@@ -165,7 +170,12 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
     )
 
     # --------------- Setup Model ---------------
-    model_dir = Path(PROJECT_ROOT, "garage", "pretrained_models", env_name)
+    model_dir = Path(
+        PROJECT_ROOT,
+        "garage",
+        "pretrained_models",
+        f"{env_name}_{cfg.overrides.model_hid_size}",
+    )
     dynamics_model = mbrl_common.create_one_dim_tr_model(
         cfg,
         obs_shape,
@@ -193,6 +203,9 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
     logger = Logger(work_dir, cfg)
     log_name = f"{cfg.algorithm.name}_{env_name}"
     logger.register_group(log_name, MB_LOG_FORMAT, color="cyan")
+    logger.register_group(
+        "agent", AGENT_LOG_FORMAT, color="green", terminal_silent=True
+    )
     save_path = Path(
         PROJECT_ROOT,
         "garage",
@@ -303,7 +316,7 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
                 )
 
             # --------------- Agent Training -----------------
-            for _ in range(cfg.overrides.num_policy_updates_per_step):
+            for i in range(cfg.overrides.num_policy_updates_per_step):
                 if (
                     env_steps + 1
                 ) % cfg.overrides.policy_updates_every_steps != 0 or len(
@@ -311,13 +324,21 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
                 ) < cfg.overrides.learner_batch_size:
                     break
                 elif is_maze:
-                    agent.step(bc=False, batch_size=cfg.overrides.learner_batch_size)
+                    loss_logs = agent.step(
+                        bc=False,
+                        batch_size=cfg.overrides.learner_batch_size,
+                        critic_clip=cfg.overrides.critic_clip,
+                    )
                 else:
-                    agent.sac_agent.adv_update_parameters(
+                    loss_logs = agent.sac_agent.adv_update_parameters(
                         learner_buffer,
                         cfg.overrides.learner_batch_size,
                         reverse_mask=True,
                     )
+                loss_logs = {f"agent/{k}": v for k, v in loss_logs.items()}
+                loss_logs["env_steps"] = env_steps
+                if env_steps % cfg.log_frequency == 0:
+                    logger.log_data("agent", loss_logs)
                 if cfg.overrides.ema_agent:
                     ema_agent.update()
                 if not is_maze and cfg.overrides.schedule_actor_lr:

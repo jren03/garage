@@ -37,12 +37,17 @@ def train(cfg: omegaconf.DictConfig, demos_dict: Dict[str, Any]) -> None:
     env_name = cfg.overrides.env
 
     # ------------------------------ Logging/Seeding ------------------------------ #
-    model_train_dir = Path(PROJECT_ROOT, "garage", "pretrained_models", env_name)
+    model_train_dir = Path(
+        PROJECT_ROOT,
+        "garage",
+        "pretrained_models",
+        f"{env_name}_{cfg.algorithm.dynamics_model.hid_size}",
+    )
     model_train_dir.mkdir(exist_ok=True, parents=True)
     for csv in model_train_dir.glob("*.csv"):
         cprint(f"Unlinking {csv.stem}", "red", attrs=["bold"])
         csv.unlink()
-    logger = Logger(model_train_dir)
+    logger = Logger(model_train_dir, cfg)
     rng = np.random.default_rng(seed=cfg.seed)
     torch_generator = torch.Generator(device=cfg.device)
     if cfg.seed is not None:

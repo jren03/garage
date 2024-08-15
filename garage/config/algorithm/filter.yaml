@@ -7,6 +7,7 @@ total_env_steps: ${overrides.total_env_steps}
 relabel: true
 hybrid_sampling: false
 is_model_based: false
+log_frequency: 5000
 
 bc_init_steps: ${overrides.bc_init_steps}
 
@@ -36,6 +37,8 @@ td3_agent:
   learner_buffer: ???
   discriminator: ???
   cfg: ???
+  actor_wd: ${overrides.actor.actor_wd}
+  critic_wd: ${overrides.actor.critic_wd}
   discount: ${overrides.actor.discount}
   tau: ${overrides.actor.tau}
   policy_noise_scalar: ${overrides.actor.policy_noise_scalar}
