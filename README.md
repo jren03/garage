@@ -5,7 +5,7 @@
       <img src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
 </p>
 
-This repository contains implementations of the algorithms presented in [Hybrid Inverse Reinforcement Learning.](https://arxiv.org/abs/2402.08848).
+This repository contains implementations of the algorithms presented in [Hybrid Inverse Reinforcement Learning](https://arxiv.org/abs/2402.08848). For videos and key insights, please check out our [website](https://gokul.dev/hyper/).
 <p align="center">
   <img width="500" src="assets/hyper_ffig.png">
 </p>
