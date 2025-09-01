@@ -167,7 +167,7 @@ The HyPER algorithm is built off of [LAMPS-MBRL](https://github.com/vvanirudh/LA
 
 ## Citation
 
-If you found this repository useful in your research, plase consider citing our paper.
+If you found this repository useful in your research, please consider citing our paper.
 ```bibtex
 @misc{ren2024hybrid,
       title={Hybrid Inverse Reinforcement Learning}, 
